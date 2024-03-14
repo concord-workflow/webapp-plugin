@@ -16,7 +16,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.*;
+import java.util.stream.Stream;
 
+import static java.util.Comparator.comparing;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 /**
@@ -26,7 +28,7 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 @Priority(Integer.MAX_VALUE - 1000)
 public class WebappFilter extends HttpFilter {
 
-    private final Set<Webapp> webapps;
+    private final WebappCollection webapps;
 
     public WebappFilter() {
         this.webapps = loadWebapps();
@@ -87,8 +89,8 @@ public class WebappFilter extends HttpFilter {
         }
     }
 
-    private static Set<Webapp> loadWebapps() {
-        var result = new HashSet<Webapp>();
+    private static WebappCollection loadWebapps() {
+        var result = new ArrayList<Webapp>();
         var classLoader = WebappPluginModule.class.getClassLoader();
         try {
             classLoader.getResources("META-INF/concord/webapp.properties")
@@ -100,7 +102,7 @@ public class WebappFilter extends HttpFilter {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return result;
+        return new WebappCollection(result);
     }
 
     private record Webapp(String path,
@@ -121,6 +123,22 @@ public class WebappFilter extends HttpFilter {
             var resourceRoot = assertString(source, props, "resourceRoot");
             var indexHtmlRelativePath = assertString(source, props, "indexHtmlRelativePath");
             return new Webapp(path, resources, resourceRoot, indexHtmlRelativePath);
+        }
+    }
+
+    private static class WebappCollection {
+
+        // must be sorted, longest prefixes first
+        private final List<Webapp> webapps;
+
+        public WebappCollection(Collection<Webapp> webapps) {
+            this.webapps = webapps.stream()
+                    .sorted(comparing(Webapp::path).reversed())
+                    .toList();
+        }
+
+        public Stream<Webapp> stream() {
+            return webapps.stream();
         }
     }
 
