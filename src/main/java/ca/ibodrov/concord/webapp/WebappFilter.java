@@ -196,10 +196,14 @@ public class WebappFilter extends HttpFilter {
         var ext = fileName.substring(extIdx + 1);
         return Optional.ofNullable(switch (ext) {
             case "css" -> "text/css";
+            case "gif" -> "image/gif";
             case "html" -> "text/html";
+            case "jpg", "jpeg" -> "image/jpeg";
             case "js" -> "text/javascript";
+            case "png" -> "image/png";
             case "svg" -> "image/svg+xml";
             case "ttf" -> "font/ttf";
+            case "webp" -> "image/webp";
             case "woff" -> "font/woff";
             case "woff2" -> "font/woff2";
             default -> null;
