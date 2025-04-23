@@ -47,7 +47,7 @@ public class WebappFilter extends HttpFilter {
     }
 
     private void doGet(Webapp webapp, HttpServletRequest req, HttpServletResponse resp) {
-        var path = req.getPathInfo();
+        var path = req.getRequestURI();
 
         if (!path.startsWith(webapp.path())) {
             throw new RuntimeException("Unexpected path: " + path);
